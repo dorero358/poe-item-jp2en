@@ -127,11 +127,19 @@ function exactLookup(value) {
 
 function ruleInputVariants(text) {
   const variants = [text];
-  const withoutDisplayAlias = text.replace(/^([^()\d]+)\([^)]*[ぁ-んァ-ヶ一-龯][^)]*\)(?=(?:と)?の)/, "$1");
+  const withoutDisplayAlias = text.replace(/^([^()\d]+)\([^)]*[ぁ-んァ-ヶ一-龯][^)]*\)(?=(?:と)?の|が)/, "$1");
   if (withoutDisplayAlias !== text) variants.unshift(withoutDisplayAlias);
   for (const variant of [...variants]) {
     const conquered = variant.replace(/(範囲内のパッシブ(?:スキル)?は[^\n]+に)支配される/g, "$1征服される");
     if (conquered !== variant) variants.unshift(conquered);
+  }
+  // Devotion mods on Militant Faith use wording that differs from the dictionary rules:
+  // 敵に付与した ⇔ 敵に対する, and トーテムダメージ ⇔ トーテムのダメージ.
+  for (const variant of [...variants]) {
+    const devotion = variant
+      .replace(/^(信仰心\d+ごとに)敵に付与した/, "$1敵に対する")
+      .replace(/^(信仰心\d+ごとに)(トーテム|ブランド)(ダメージ)/, "$1$2の$3");
+    if (devotion !== variant) variants.unshift(devotion);
   }
   return [...new Set(variants)];
 }
