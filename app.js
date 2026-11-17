@@ -34,7 +34,9 @@ const manualExact = new Map([
   ["アビス", "Abyss"],
   ["上品な傲慢", "Elegant Hubris"],
   ["範囲内のパッシブは永遠の帝国に征服される", "Passives in radius are Conquered by the Eternal Empire"],
-  ["範囲内のパッシブはエターナル帝国に征服される", "Passives in radius are Conquered by the Eternal Empire"]
+  ["範囲内のパッシブはエターナル帝国に征服される", "Passives in radius are Conquered by the Eternal Empire"],
+  ["範囲内のパッシブはヴァールに征服される", "Passives in radius are Conquered by the Vaal"],
+  ["範囲内のパッシブはヴァールに支配される", "Passives in radius are Conquered by the Vaal"]
 ]);
 const fixed = new Map([
   ["アイテムクラス", "Item Class"], ["レアリティ", "Rarity"],
@@ -392,6 +394,8 @@ function convertLine(line, options = {}) {
     if (skill) return { text: skill, converted: true, kind: "property" };
   }
 
+  const manualTranslation = manualExact.get(clean);
+  if (manualTranslation) return { text: `${manualTranslation}${tag ? ` ${tag}` : ""}`, converted: true, kind: "known" };
   const directRule = translateByRule(clean);
   if (/(?:により|によって|に)サポートされる$/.test(clean) && directRule && !containsJapanese(directRule) && !/\b[Ll]evel\s+\d\s+\d/.test(directRule)) {
     return { text: `${directRule}${tag ? ` ${tag}` : ""}`, converted: true, kind: "mod" };
@@ -664,17 +668,37 @@ function convert(text) {
   return { output, converted, criticalUnknown, ignored, unknown: criticalUnknown.map(item => item.line) };
 }
 
-function formatReport(result) {
+function extractReportItemInfo(source) {
+  const lines = normalize(source).split("\n").map(line => line.trim()).filter(Boolean);
+  const valueAfter = label => {
+    const line = lines.find(line => line.startsWith(`${label}:`) || line.startsWith(`${label}：`));
+    return line?.replace(/^[^:：]+[:：]\s*/, "").trim();
+  };
+  const rarityIndex = lines.findIndex(line => /^(?:レアリティ|Rarity)[:：]/.test(line));
+  const nameLines = rarityIndex >= 0
+    ? lines.slice(rarityIndex + 1).filter(line => !/^-{5,}$/.test(line)).slice(0, 2)
+    : [];
+  return [
+    ["アイテムクラス", valueAfter("アイテムクラス") || valueAfter("Item Class")],
+    ["レアリティ", valueAfter("レアリティ") || valueAfter("Rarity")],
+    ["アイテム名 / ベース", nameLines.join(" / ")],
+    ["アイテムレベル", valueAfter("アイテムレベル") || valueAfter("Item Level")]
+  ].filter(([, value]) => value).map(([label, value]) => `- ${label}: ${value}`);
+}
+
+function formatReport(result, source = "") {
   const section = (title, items) => [
     `${title}: ${items.length}行`,
     ...(items.length ? items.map(item => `- [${item.category} / block ${item.block ?? "?"}] ${item.line}`) : ["- なし"])
   ];
+  const ignored = result.ignored.filter(item => !/^(?:メモ|Note):/i.test(item.line.trim()) && !/~b\/o\b/i.test(item.line));
   return [
     "PoE JP → EN 未変換レポート",
     "",
+    ...(source ? ["## アイテム情報", ...extractReportItemInfo(source), ""] : []),
     ...section("PoB必須項目の未変換", result.criticalUnknown),
     "",
-    ...section("PoB非依存として除外", result.ignored)
+    ...section("PoB非依存として除外", ignored)
   ].join("\n");
 }
 
@@ -693,7 +717,7 @@ function buildFeedbackBody(result, source, userAgent = "") {
     "",
     "## 未変換レポート",
     "```text",
-    formatReport(result),
+    formatReport(result, source),
     "```",
     "",
     "## 日本語の元データ（取引メモ除外済み）",
@@ -757,7 +781,7 @@ if (typeof document !== "undefined") {
     lastResult = result;
     $("output").value = result.output;
     $("output-display").innerHTML = renderOutput(result);
-    if ($("report-output")) $("report-output").value = formatReport(result);
+    if ($("report-output")) $("report-output").value = formatReport(result, $("input").value);
     if ($("report-panel")) $("report-panel").hidden = false;
     $("copy").disabled = !result.output;
     if ($("copy-report")) $("copy-report").disabled = false;
