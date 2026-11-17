@@ -1,6 +1,6 @@
 let dictionary;
 
-const APP_VERSION = "v0.2.18";
+const APP_VERSION = "v0.2.19";
 const APP_UPDATED = "2026-11-17 JST";
 const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd_Wf7xyJxhqLbTyvIlucRngoe0-Gw0RbG01AKqnJd3Vz259g/viewform";
 
@@ -749,12 +749,14 @@ async function copyField(field, successMessage) {
     await navigator.clipboard.writeText(field.value);
     $("summary").className = "summary";
     $("summary").textContent = successMessage;
+    return true;
   } catch {
     field.select();
     const copied = document.execCommand("copy");
     field.setSelectionRange(0, 0);
     $("summary").className = `summary${copied ? "" : " warning"}`;
     $("summary").textContent = copied ? successMessage : "コピーできませんでした。欄内から手動でコピーしてください";
+    return copied;
   }
 }
 
@@ -820,8 +822,17 @@ if (typeof document !== "undefined") {
     if (!lastResult?.criticalUnknown.length) return;
     const report = $("feedback-buffer");
     report.value = buildFeedbackBody(lastResult, $("input").value, navigator.userAgent);
+    if ($("report-output")) $("report-output").value = report.value;
     const formTab = window.open("about:blank", "_blank");
-    await copyField(report, "未変換レポートをコピーしました。Googleフォームの「報告内容」へ貼り付けてください");
+    const copied = await copyField(report, "未変換レポートをコピーしました。Googleフォームの「報告内容」へ貼り付けてください");
+    if (!copied) {
+      if ($("report-panel")) {
+        $("report-panel").hidden = false;
+        $("report-panel").scrollIntoView({ block: "nearest" });
+      }
+      if (formTab) formTab.close();
+      return;
+    }
     if (!formTab) {
       $("summary").className = "summary warning";
       $("summary").textContent = "レポートはコピーしましたが、Googleフォームを開けませんでした。ポップアップを許可してください";
