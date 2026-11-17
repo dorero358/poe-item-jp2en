@@ -1,7 +1,7 @@
 let dictionary;
 
-const APP_VERSION = "v0.2.17";
-const APP_UPDATED = "2026-09-05 JST";
+const APP_VERSION = "v0.2.18";
+const APP_UPDATED = "2026-11-17 JST";
 const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd_Wf7xyJxhqLbTyvIlucRngoe0-Gw0RbG01AKqnJd3Vz259g/viewform";
 
 const $ = id => document.getElementById(id);
@@ -34,9 +34,21 @@ const manualExact = new Map([
   ["アビス", "Abyss"],
   ["上品な傲慢", "Elegant Hubris"],
   ["範囲内のパッシブは永遠の帝国に征服される", "Passives in radius are Conquered by the Eternal Empire"],
+  ["範囲内のパッシブは永遠の帝国に支配される", "Passives in radius are Conquered by the Eternal Empire"],
   ["範囲内のパッシブはエターナル帝国に征服される", "Passives in radius are Conquered by the Eternal Empire"],
+  ["範囲内のパッシブはエターナル帝国に支配される", "Passives in radius are Conquered by the Eternal Empire"],
   ["範囲内のパッシブはヴァールに征服される", "Passives in radius are Conquered by the Vaal"],
-  ["範囲内のパッシブはヴァールに支配される", "Passives in radius are Conquered by the Vaal"]
+  ["範囲内のパッシブはヴァールに支配される", "Passives in radius are Conquered by the Vaal"],
+  ["範囲内のパッシブはカルイに征服される", "Passives in radius are Conquered by the Karui"],
+  ["範囲内のパッシブはカルイに支配される", "Passives in radius are Conquered by the Karui"],
+  ["範囲内のパッシブはマラケスに征服される", "Passives in radius are Conquered by the Maraketh"],
+  ["範囲内のパッシブはマラケスに支配される", "Passives in radius are Conquered by the Maraketh"],
+  ["範囲内のパッシブはテンプラーに征服される", "Passives in radius are Conquered by the Templars"],
+  ["範囲内のパッシブはテンプラーに支配される", "Passives in radius are Conquered by the Templars"],
+  ["範囲内のパッシブはカルグールに征服される", "Passives in radius are Conquered by the Kalguur"],
+  ["範囲内のパッシブはカルグールに支配される", "Passives in radius are Conquered by the Kalguur"],
+  ["範囲内のパッシブはアビサルに征服される", "Passives affected are Conquered by the Abyssal"],
+  ["範囲内のパッシブはアビサルに支配される", "Passives affected are Conquered by the Abyssal"]
 ]);
 const fixed = new Map([
   ["アイテムクラス", "Item Class"], ["レアリティ", "Rarity"],
